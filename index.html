@@ -6,54 +6,9 @@
   <title>🛸UAP Sightings Map</title>
 
   <!-- ArcGIS & Fonts -->
-  <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css" />
+  <link rel="stylesheet" href="styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <script src="https://js.arcgis.com/4.26/"></script>
-
-  <style>
-    html, body, #viewDiv {
-      padding: 0;
-      margin: 0;
-      height: 100%;
-      width: 100%;
-      background: radial-gradient(ellipse at bottom, #0d1b2a 0%, #000000 100%);
-      font-family: 'Orbitron', sans-serif;
-      color: #00ff40;
-    }
-
-    .reportBtn {
-      position: absolute;
-      z-index: 10;
-      top: 10px;
-      right: 10px;
-      background-color: #00ff40;
-      color: #0d1b2a;
-      padding: 10px 18px;
-      border: none;
-      border-radius: 4px;
-      font-size: 14px;
-      cursor: pointer;
-      text-decoration: none;
-      box-shadow: 0 0 10px #00ff40, 0 0 20px #00ff40;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .reportBtn:hover {
-      background-color: #cfec5c;
-      box-shadow: 0 0 15px #00ff40, 0 0 30px #00ff40;
-    }
-
-    /* Popup theming (dark mode) */
-    .esri-popup__main-container {
-      background-color: #111;
-      color: #00ff40;
-    }
-
-    .esri-popup__content, .esri-popup__header-title {
-      font-family: 'Orbitron', sans-serif;
-      color: #00ff40;
-    }
-  </style>
 </head>
 
 <body>
@@ -61,112 +16,6 @@
   <a href="https://arcg.is/1qjujz1" target="_blank" class="reportBtn">Report a Sighting</a>
   <div id="viewDiv"></div>
 
-  <script>
-    require([
-      "esri/config",
-      "esri/Map",
-      "esri/views/MapView",
-      "esri/layers/FeatureLayer",
-      "esri/widgets/Locate",
-      "esri/widgets/Search",
-      "esri/widgets/Legend",
-      "esri/widgets/Expand",
-      "esri/widgets/BasemapGallery"
-    ], (
-      esriConfig, Map, MapView, FeatureLayer,
-      Locate, Search, Legend, Expand, BasemapGallery
-    ) => {
-
-      // Set your ArcGIS API key
-      esriConfig.apiKey = "AAPTxy8BH1VEsoebNVZXo8HurEwEJiPsJAv6XK5APCcuFpZEmTCdTdSU9XMQXYBgfL9c5UnZrY4R2UdHgVrW8LfqDFKnjefPQr9XO0pMlE2S9osFC4vlxQEcDC2L-rbRhvnh3cGFmfknrnTY3XSIHKqUu1aHDnbMm61c0aME06Eg9u_NwfzhPyWlPsZlxkyOWLAtootixnskdcZY0pddnIjDLJ19HPMO7YoJRFfo-wFMnrXD59hI_LVwr_BLfWo0dbk7AT1_nGwi5c7J";
-
-      // Initialize the map with a themed basemap
-      const map = new Map({ basemap: "streets-night-vector" });
-
-      const view = new MapView({
-        container: "viewDiv",
-        map: map,
-        center: [-98, 39],
-        zoom: 4
-      });
-
-      // Locate and Search widgets
-      view.ui.add(new Locate({ view }), "top-left");
-      view.ui.add(new Search({ view }), "bottom-right");
-
-      // Custom renderer using your UFO icon
-      const uapRenderer = {
-        type: "simple",
-        symbol: {
-          type: "picture-marker",
-          url: "https://raw.githubusercontent.com/DavidKimmel/uap_reporting/main/ufoicon.png",
-          width: "32px",
-          height: "32px"
-        },
-        label: "UAP encounter"
-      };
-
-      // Define popupTemplate instead of manual HTML construction
-      const popupTemplate = {
-        title: "UAP Sighting Report",
-        content: [
-          {
-            type: "fields",
-            fieldInfos: [
-              { fieldName: "time_of_incident", label: "Time of Incident", format: { dateFormat: "short-date-short-time" }},
-              { fieldName: "describe_encounter", label: "Description" },
-              { fieldName: "Creator", label: "Submitted By" },
-              { fieldName: "CreationDate", label: "Submitted On", format: { dateFormat: "short-date-short-time" }}
-            ]
-          },
-          {
-            type: "attachments"  // This auto-displays uploaded images
-          }
-        ]
-      };
-
-      // Define the UAP sightings FeatureLayer
-      const uapLayer = new FeatureLayer({
-        url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_7313cc4fd8bc40c78163e6954fd9dd7f_results/FeatureServer/0",
-        outFields: ["*"],
-        renderer: uapRenderer,
-        popupTemplate: popupTemplate
-      });
-
-      map.add(uapLayer);
-
-      // Legend widget setup
-      const legend = new Legend({
-        view: view,
-        layerInfos: [{
-          layer: uapLayer,
-          title: "UAP Reporting"
-        }]
-      });
-
-      const legendExpand = new Expand({
-        view: view,
-        content: legend,
-        expanded: false,
-        expandTooltip: "Legend"
-      });
-
-      // Auto-collapse legend on small screens
-      view.watch("widthBreakpoint", (breakpoint) => {
-        legendExpand.expanded = (breakpoint !== "xsmall");
-      });
-
-      view.ui.add(legendExpand, "bottom-left");
-
-      // Basemap gallery to switch styles (dark, satellite, etc.)
-      const basemapGallery = new BasemapGallery({ view: view });
-      const galleryExpand = new Expand({
-        view: view,
-        content: basemapGallery,
-        expandTooltip: "Basemap Gallery"
-      });
-      view.ui.add(galleryExpand, "top-left");
-    });
-  </script>
+  <script src="main.js"></script>
 </body>
 </html>
